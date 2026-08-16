@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Time your focus like an instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14201E;
+    --ink-2:#1C2B28;
+    --ink-3:#233531;
+    --brass:#C9A227;
+    --brass-bright:#E4C158;
+    --copper:#B5651D;
+    --mist:#9FB3AE;
+    --chalk:#EDEDE5;
+    --line: rgba(237,237,229,0.12);
+    --radius: 4px;
+    --display: 'Fraunces', serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--ink);
+    color:var(--chalk);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .wrap{ max-width:1160px; margin:0 auto; padding:0 32px; }
+
+  ::selection{ background:var(--brass); color:var(--ink); }
+
+  :focus-visible{ outline:2px solid var(--brass-bright); outline-offset:3px; }
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(20,32,30,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    max-width:1160px; margin:0 auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--display); font-size:20px; font-weight:600;
+    letter-spacing:0.01em;
+  }
+  .brand-mark{
+    width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--brass);
+    position:relative; flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:''; position:absolute; left:50%; top:50%;
+    width:1.5px; height:7px; background:var(--brass);
+    transform-origin:bottom center;
+    transform: translate(-50%,-100%) rotate(0deg);
+    animation: sweep 8s linear infinite;
+  }
+  @keyframes sweep{ to{ transform: translate(-50%,-100%) rotate(360deg); } }
+
+  nav.links{ display:flex; gap:36px; }
+  nav.links a{
+    font-size:14px; color:var(--mist); transition:color .2s ease;
+  }
+  nav.links a:hover{ color:var(--chalk); }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:12px 22px; border-radius:var(--radius);
+    font-size:14px; font-weight:600; font-family:var(--body);
+    cursor:pointer; border:1px solid transparent;
+    transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+  }
+  .btn-primary{
+    background:var(--brass); color:var(--ink);
+  }
+  .btn-primary:hover{ background:var(--brass-bright); transform:translateY(-1px); }
+  .btn-ghost{
+    border-color:var(--line); color:var(--chalk);
+  }
+  .btn-ghost:hover{ border-color:var(--mist); }
+
+  .nav-cta{ display:flex; align-items:center; gap:16px; }
+  .nav-login{ font-size:14px; color:var(--mist); display:none; }
+  @media(min-width:640px){ .nav-login{ display:inline; } }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:96px 0 80px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'';
+    position:absolute; inset:0;
+    background:
+      radial-gradient(600px 400px at 15% -10%, rgba(201,162,39,0.10), transparent 60%),
+      radial-gradient(500px 500px at 100% 20%, rgba(181,101,29,0.08), transparent 60%);
+    pointer-events:none;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1fr; gap:64px;
+    align-items:center;
+    position:relative;
+  }
+  @media(min-width:960px){
+    .hero-grid{ grid-template-columns:1.05fr 0.95fr; }
+  }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--brass-bright);
+    border:1px solid rgba(201,162,39,0.35);
+    padding:6px 12px; border-radius:100px;
+    margin-bottom:28px;
+  }
+  .eyebrow-dot{ width:6px; height:6px; border-radius:50%; background:var(--brass-bright); }
+
+  h1{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:clamp(34px, 5.2vw, 60px);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    color:var(--chalk);
+    max-width:12ch;
+  }
+  h1 em{ font-style:italic; color:var(--brass-bright); }
+
+  .hero-sub{
+    margin-top:24px;
+    font-size:17px; line-height:1.65;
+    color:var(--mist);
+    max-width:44ch;
+  }
+
+  .hero-actions{
+    margin-top:36px;
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  }
+  .hero-note{
+    font-family:var(--mono); font-size:12.5px; color:var(--mist);
+  }
+
+  /* ---------- DIAL ---------- */
+  .dial-stage{
+    display:flex; flex-direction:column; align-items:center; gap:22px;
+  }
+  .dial{
+    position:relative; width:min(340px, 76vw); aspect-ratio:1/1;
+  }
+  .dial svg{ width:100%; height:100%; display:block; }
+  .dial-face{ fill:var(--ink-2); stroke:var(--line); stroke-width:1; }
+  .dial-rim{ fill:none; stroke:var(--brass); stroke-width:1.5; opacity:0.5; }
+  .tick{ stroke:var(--mist); stroke-width:1; opacity:0.5; }
+  .tick.major{ stroke:var(--brass-bright); opacity:0.9; stroke-width:1.6; }
+  .hand{
+    stroke:var(--brass-bright); stroke-width:2; stroke-linecap:round;
+    transform-origin:170px 170px;
+    animation: sweephand 60s linear infinite;
+  }
+  @keyframes sweephand{ to{ transform:rotate(360deg); } }
+  .hub{ fill:var(--brass-bright); }
+
+  .dial-readout{
+    text-align:center;
+  }
+  .dial-number{
+    font-family:var(--mono); font-size:34px; font-weight:600;
+    color:var(--chalk); letter-spacing:0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dial-label{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--mist); margin-top:6px;
+  }
+
+  @media(prefers-reduced-motion: reduce){
+    .hand, .brand-mark::after{ animation:none; }
+  }
+
+  /* ---------- SOCIAL PROOF ---------- */
+  .proof{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:28px 0;
+  }
+  .proof-inner{
+    display:flex; align-items:center; justify-content:center; gap:44px;
+    flex-wrap:wrap;
+  }
+  .proof-item{
+    font-family:var(--mono); font-size:12.5px; color:var(--mist);
+    letter-spacing:0.04em; text-transform:uppercase;
+    opacity:0.75;
+  }
+
+  /* ---------- SECTION HEADERS ---------- */
+  .section{ padding:104px 0; }
+  .section-tight{ padding:88px 0; }
+  .section-head{
+    max-width:640px; margin-bottom:60px;
+  }
+  .section-eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--copper-2, var(--brass));
+    margin-bottom:14px;
+  }
+  .section-title{
+    font-family:var(--display); font-weight:500;
+    font-size:clamp(26px, 3.4vw, 36px);
+    line-height:1.15; color:var(--chalk);
+  }
+  .section-desc{
+    margin-top:16px; color:var(--mist); font-size:16px; max-width:52ch;
+  }
+
+  /* ---------- GAUGES (features) ---------- */
+  .gauges{
+    display:grid; grid-template-columns:1fr; gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  @media(min-width:800px){ .gauges{ grid-template-columns:repeat(3,1fr); } }
+
+  .gauge-card{
+    background:var(--ink-2);
+    padding:36px 30px 32px;
+    display:flex; flex-direction:column; gap:18px;
+  }
+  .gauge-mark{
+    width:52px; height:52px; border-radius:50%;
+    border:1.5px solid var(--brass);
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gauge-mark svg{ width:24px; height:24px; }
+  .gauge-mark svg *{ stroke:var(--brass-bright); }
+
+  .gauge-title{
+    font-family:var(--display); font-weight:600; font-size:19px;
+  }
+  .gauge-desc{ color:var(--mist); font-size:14.5px; line-height:1.6; }
+  .gauge-reading{
+    margin-top:auto; padding-top:16px; border-top:1px solid var(--line);
+    font-family:var(--mono); font-size:12px; color:var(--brass-bright);
+    letter-spacing:0.04em;
+  }
+
+  /* ---------- TAPE REEL (how it works) ---------- */
+  .reel{
+    display:grid; grid-template-columns:1fr; gap:40px;
+  }
+  @media(min-width:800px){ .reel{ grid-template-columns:repeat(3,1fr); position:relative; } }
+  .reel::before{
+    content:'';
+    display:none;
+  }
+  @media(min-width:800px){
+    .reel::before{
+      display:block;
+      content:'';
+      position:absolute; top:26px; left:8%; right:8%; height:1px;
+      background: repeating-linear-gradient(90deg, var(--brass) 0 8px, transparent 8px 16px);
+      opacity:0.5;
+    }
+  }
+  .reel-step{ position:relative; }
+  .reel-index{
+    font-family:var(--mono); font-size:13px; color:var(--ink);
+    background:var(--brass); width:52px; height:52px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; letter-spacing:0.02em;
+    position:relative; z-index:1;
+  }
+  .reel-title{
+    font-family:var(--display); font-weight:600; font-size:20px;
+    margin-top:20px;
+  }
+  .reel-desc{ color:var(--mist); font-size:15px; margin-top:10px; line-height:1.6; max-width:36ch; }
+
+  /* ---------- PLAQUE (testimonial) ---------- */
+  .plaque-wrap{ display:flex; justify-content:center; }
+  .plaque{
+    max-width:680px; text-align:center;
+    background:linear-gradient(180deg, var(--ink-3), var(--ink-2));
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:56px 44px;
+    position:relative;
+  }
+  .plaque::before, .plaque::after{
+    content:''; position:absolute; width:8px; height:8px; border-radius:50%;
+    background:var(--brass); opacity:0.7;
+  }
+  .plaque::before{ top:16px; left:16px; }
+  .plaque::after{ top:16px; right:16px; }
+  .plaque-quote{
+    font-family:var(--display); font-style:italic; font-weight:500;
+    font-size:clamp(19px,2.4vw,24px); line-height:1.5; color:var(--chalk);
+  }
+  .plaque-attr{
+    margin-top:24px; font-family:var(--mono); font-size:12.5px;
+    color:var(--brass-bright); letter-spacing:0.04em; text-transform:uppercase;
+  }
+
+  /* ---------- PRICING ---------- */
+  .pricing-grid{
+    display:grid; grid-template-columns:1fr; gap:24px;
+  }
+  @media(min-width:700px){ .pricing-grid{ grid-template-columns:1fr 1fr; } }
+  .price-card{
+    border:1px solid var(--line); border-radius:8px;
+    padding:36px 32px; background:var(--ink-2);
+    display:flex; flex-direction:column;
+  }
+  .price-card.featured{
+    border-color:var(--brass); background:var(--ink-3);
+    box-shadow: 0 0 0 1px rgba(201,162,39,0.25), 0 20px 60px -20px rgba(201,162,39,0.15);
+  }
+  .price-name{ font-family:var(--mono); font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--mist); }
+  .price-value{ font-family:var(--display); font-size:44px; font-weight:500; margin-top:14px; color:var(--chalk); }
+  .price-value span{ font-size:16px; font-family:var(--body); color:var(--mist); font-weight:400; }
+  .price-desc{ margin-top:10px; color:var(--mist); font-size:14.5px; }
+  .price-list{ margin-top:26px; display:flex; flex-direction:column; gap:12px; flex-grow:1; }
+  .price-list div{ display:flex; gap:10px; font-size:14.5px; color:var(--chalk); align-items:flex-start; }
+  .price-list div::before{ content:'—'; color:var(--brass-bright); flex-shrink:0; }
+  .price-card .btn{ margin-top:28px; width:100%; }
+
+  /* ---------- FINAL CTA ---------- */
+  .final-cta{
+    text-align:center; padding:110px 0 120px;
+    border-top:1px solid var(--line);
+  }
+  .final-cta h2{
+    font-family:var(--display); font-weight:500;
+    font-size:clamp(28px,4vw,44px); max-width:16ch; margin:0 auto;
+  }
+  .final-cta .hero-sub{ margin-left:auto; margin-right:auto; text-align:center; }
+  .final-cta .hero-actions{ justify-content:center; margin-top:32px; }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:40px 0;
+  }
+  .foot-inner{
+    display:flex; flex-direction:column; gap:20px;
+    align-items:center; text-align:center;
+  }
+  @media(min-width:700px){
+    .foot-inner{ flex-direction:row; justify-content:space-between; text-align:left; }
+  }
+  .foot-links{ display:flex; gap:28px; }
+  .foot-links a{ font-size:13.5px; color:var(--mist); }
+  .foot-links a:hover{ color:var(--chalk); }
+  .foot-copy{ font-family:var(--mono); font-size:12px; color:var(--mist); opacity:0.7; }
+
+  /* ---------- REVEAL ---------- */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  @media(prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="brand-mark"></span>Loop</div>
+    <nav class="links">
+      <a href="#features">Instrument</a>
+      <a href="#how">Method</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="nav-login" href="#">Log in</a>
+      <a class="btn btn-primary" href="#pricing">Start free</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>A stopwatch for deep work</div>
+      <h1>Time your focus like <em>an instrument</em>, not an app.</h1>
+      <p class="hero-sub">Loop logs every deep work session with lab-timer precision — no dashboards to check, no streaks to fake. Wind the dial, work, and it records itself.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#pricing">Start a session — free</a>
+        <a class="btn btn-ghost" href="#how">See how it reads</a>
+      </div>
+      <p class="hero-note">No card required · Reads your calendar in one click</p>
+    </div>
+
+    <div class="dial-stage">
+      <div class="dial">
+        <svg viewBox="0 0 340 340">
+          <circle class="dial-face" cx="170" cy="170" r="150"/>
+          <circle class="dial-rim" cx="170" cy="170" r="160"/>
+          <g id="ticks"></g>
+          <line class="hand" x1="170" y1="170" x2="170" y2="55"/>
+          <circle class="hub" cx="170" cy="170" r="5"/>
+        </svg>
+      </div>
+      <div class="dial-readout">
+        <div class="dial-number" id="dialCounter">0:00:00</div>
+        <div class="dial-label">Hours logged by Loop users this week</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="proof">
+  <div class="wrap proof-inner">
+    <span class="proof-item">Used at Fieldnote</span>
+    <span class="proof-item">Kettle &amp; Co.</span>
+    <span class="proof-item">Northbound Labs</span>
+    <span class="proof-item">Pier Studio</span>
+    <span class="proof-item">Almanac</span>
+  </div>
+</div>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">The instrument panel</div>
+      <h2 class="section-title">Three gauges. Nothing else to read.</h2>
+      <p class="section-desc">Loop isn't a productivity suite. It's a precise instrument for one job — measuring focus — built to sit quietly on your desk while it runs.</p>
+    </div>
+
+    <div class="gauges reveal">
+      <div class="gauge-card">
+        <div class="gauge-mark">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path d="M12 7v5l3 2" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="gauge-title">Session Gauge</div>
+        <p class="gauge-desc">Every session is logged automatically down to the second — start, pause, and drift are all recorded without you touching a form.</p>
+        <div class="gauge-reading">READING: precise to 00:00:01</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-mark">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="2" stroke-width="1.5"/><path d="M9 9h6M9 13h6" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="gauge-title">Focus Lock</div>
+        <p class="gauge-desc">The moment the dial starts, distracting tabs and apps go quiet. It releases them the instant the session ends — nothing to configure mid-work.</p>
+        <div class="gauge-reading">READING: locks in under 400ms</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-mark">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke-width="1.5"/><path d="M4 10h16M8 3v4M16 3v4" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="gauge-title">Calendar Sync</div>
+        <p class="gauge-desc">Loop reads your calendar and reserves focus blocks before meetings crowd them out — so the dial has somewhere to run every day.</p>
+        <div class="gauge-reading">READING: syncs every 15 min</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">The method</div>
+      <h2 class="section-title">Three moves, in order, every time.</h2>
+      <p class="section-desc">Like winding a tape reel: the sequence is the whole point. Skip a step and the recording doesn't happen.</p>
+    </div>
+
+    <div class="reel reveal">
+      <div class="reel-step">
+        <div class="reel-index">1</div>
+        <div class="reel-title">Wind</div>
+        <p class="reel-desc">Set the length of your session — or let Loop pull it from the calendar block you just opened.</p>
+      </div>
+      <div class="reel-step">
+        <div class="reel-index">2</div>
+        <div class="reel-title">Run</div>
+        <p class="reel-desc">The dial sweeps while you work. Distracting apps stay locked out until the hand comes back around.</p>
+      </div>
+      <div class="reel-step">
+        <div class="reel-index">3</div>
+        <div class="reel-title">Log</div>
+        <p class="reel-desc">The session is saved automatically to your history — no notes to write, nothing to mark complete.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap plaque-wrap reveal">
+    <div class="plaque">
+      <p class="plaque-quote">"I stopped checking a dashboard to feel productive. I just look at whether the dial is running."</p>
+      <p class="plaque-attr">— Priya N., Engineering Lead at Northbound Labs</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Pricing</div>
+      <h2 class="section-title">Two dials. Pick the one you need.</h2>
+    </div>
+
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <div class="price-name">Solo</div>
+        <div class="price-value">$0<span>/forever</span></div>
+        <p class="price-desc">For running the dial on your own machine.</p>
+        <div class="price-list">
+          <div>Unlimited timed sessions</div>
+          <div>Focus Lock on one device</div>
+          <div>30-day session history</div>
+        </div>
+        <a class="btn btn-ghost" href="#">Start free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-name">Studio</div>
+        <div class="price-value">$8<span>/month</span></div>
+        <p class="price-desc">For teams who want every dial in sync.</p>
+        <div class="price-list">
+          <div>Everything in Solo</div>
+          <div>Calendar Sync across the team</div>
+          <div>Unlimited history &amp; export</div>
+          <div>Shared focus reports</div>
+        </div>
+        <a class="btn btn-primary" href="#">Start 14-day trial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap">
+    <h2 class="reveal">Wind the dial. See what a week actually looks like.</h2>
+    <p class="hero-sub reveal">Free to start, no card required. Two minutes to set up your first session.</p>
+    <div class="hero-actions reveal">
+      <a class="btn btn-primary" href="#pricing">Start a session — free</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="brand"><span class="brand-mark"></span>Loop</div>
+    <div class="foot-links">
+      <a href="#features">Instrument</a>
+      <a href="#how">Method</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <div class="foot-copy">© 2026 Loop. Built for the ones who track deep work.</div>
+  </div>
+</footer>
+
+<script>
+  // Build dial ticks
+  (function(){
+    const ticksGroup = document.getElementById('ticks');
+    const cx = 170, cy = 170, rOuter = 150, rInnerMinor = 138, rInnerMajor = 128;
+    for (let i = 0; i < 60; i++){
+      const angle = (i / 60) * 2 * Math.PI - Math.PI/2;
+      const major = i % 5 === 0;
+      const rInner = major ? rInnerMajor : rInnerMinor;
+      const x1 = cx + rOuter * Math.cos(angle);
+      const y1 = cy + rOuter * Math.sin(angle);
+      const x2 = cx + rInner * Math.cos(angle);
+      const y2 = cy + rInner * Math.sin(angle);
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('class', major ? 'tick major' : 'tick');
+      ticksGroup.appendChild(line);
+    }
+  })();
+
+  // Animated counter
+  (function(){
+    const el = document.getElementById('dialCounter');
+    const target = 128437; // total seconds equivalent for display purposes -> we'll format as h:mm:ss climbing
+    let current = 0;
+    const totalTargetSeconds = 4 * 3600 + 12 * 60 + 8; // "4:12:08" style playful stat
+    const duration = 1800;
+    const start = performance.now();
+    function format(s){
+      const h = Math.floor(s/3600);
+      const m = Math.floor((s%3600)/60);
+      const sec = Math.floor(s%60);
+      return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+    function reduceMotion(){
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    if (reduceMotion()){
+      el.textContent = format(totalTargetSeconds);
+    } else {
+      function tick(now){
+        const p = Math.min(1, (now-start)/duration);
+        const eased = 1 - Math.pow(1-p, 3);
+        el.textContent = format(totalTargetSeconds * eased);
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  })();
+
+  // Scroll reveal
+  (function(){
+    const items = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    items.forEach(i => io.observe(i));
+  })();
+</script>
+
+</body>
+</html>
